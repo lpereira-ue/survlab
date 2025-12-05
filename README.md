@@ -2,7 +2,7 @@
 
 ## Overview
 
-`survlab` provides functions for imputing non-detect values in environmental laboratory data using survival models (including Tobit models) with automatic distribution selection. This package is designed specifically for environmental engineers, consultants, and laboratory professionals working with analytical data where measurements fall below detection limits or limits of quantification (LOQ).
+`survlab` provides functions for imputing non-detect values in environmental laboratory data using survival models (including Tobit models) with automatic distribution selection. Is designed specifically for working with analytical data where measurements fall below detection limits or limits of quantification (LOQ).
 
 ## Key Features
 
@@ -142,21 +142,6 @@ result <- impute_tobit_random(
   cens_col = "is_below_loq"
 )
 ```
-
-## Dependencies
-
-- `data.table` (>= 1.12.0)
-- `survival` (>= 3.0.0) 
-- `truncnorm` (>= 1.0.0)
-- `stats`
-
-## Contributing
-
-Please feel free to submit issues and pull requests. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Citation
 
