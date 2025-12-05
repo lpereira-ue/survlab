@@ -15,7 +15,7 @@
 #' @param min_observations Minimum number of observations required for modeling (default: 25)
 #' @param max_censored_pct Maximum percentage of censored values allowed (default: 75)
 #' @param min_value Minimum allowable value for imputed concentrations (default: 0, use 1e-10 for strictly positive)
-#' @param verbose Logical indicating whether to display progress messages and distribution fitting information (default: TRUE)
+#' @param verbose Logical indicating whether to display progress messages and distribution fitting information (default: FALSE)
 #'
 #' @return A data.table with additional columns:
 #' \describe{
@@ -55,32 +55,41 @@
 #' making it suitable for batch processing of multiple parameters.
 #'
 #' @examples
-#' \dontrun{
-#' # Process each parameter separately
-#' library(data.table)
+#' # Load example data
+#' data(multi_censored_data)
 #'
-#' # Split data by parameter
-#' param_data <- split(your_data, by = "parameter")
+#' # Basic imputation with default settings
+#' set.seed(123)
+#' result <- impute_nondetect(
+#'   dt = multi_censored_data,
+#'   value_col = "value",
+#'   cens_col = "censored",
+#'   verbose = FALSE
+#' )
 #'
-#' # Process each parameter
-#' results <- lapply(param_data, function(x) {
-#'   impute_nondetect(x,
-#'                   value_col = "value",
-#'                   cens_col = "censored",
-#'                   parameter_col = "parameter",
-#'                   unit_col = "unit",
-#'                   verbose = FALSE)
-#' })
+#' # View imputed values for non-detects
+#' head(result[censored == 0, .(value, value_imputed, value_final)])
 #'
-#' # Combine results
-#' final_data <- rbindlist(results)
+#' # Check best distribution selected
+#' attr(result, "best_distribution")
+#'
+#' # With parameter and unit validation
+#' result <- impute_nondetect(
+#'   dt = multi_censored_data,
+#'   value_col = "value",
+#'   cens_col = "censored",
+#'   parameter_col = "parameter",
+#'   unit_col = "unit"
+#' )
 #'
 #' # For strictly positive values (avoiding exactly zero)
-#' result <- impute_nondetect(single_param_data,
-#'                           value_col = "value",
-#'                           cens_col = "censored",
-#'                           min_value = 1e-10)
-#' }
+#' result <- impute_nondetect(
+#'   dt = multi_censored_data,
+#'   value_col = "value",
+#'   cens_col = "censored",
+#'   min_value = 1e-10,
+#'   verbose = FALSE
+#' )
 #'
 #' @import data.table
 #' @import survival
@@ -104,7 +113,7 @@ impute_nondetect <- function(
   min_observations = 25,
   max_censored_pct = 75,
   min_value = 0,
-  verbose = TRUE
+  verbose = FALSE
 ) {
   # Input validation
   if (!value_col %in% names(dt)) {
@@ -148,15 +157,15 @@ impute_nondetect <- function(
   censored_pct <- (non_detects / total_obs) * 100
 
   # Check if there are any non-detect observations
-	if (non_detects == 0) {
-	  if (verbose) {
-		message("No non-detect observations found. Returning original data unchanged.")
-	  }
-  # Create the two columns so downstream code never fails:
-  dt[, paste0(value_col, "_imputed") := as.numeric(NA)]
-  dt[, paste0(value_col, "_final") := get(value_col)]
-	return(dt)
-	}
+  if (non_detects == 0) {
+    if (verbose) {
+      message("No non-detect observations found. Returning original data unchanged.")
+    }
+    # Create the two columns so downstream code never fails:
+    dt[, paste0(value_col, "_imputed") := as.numeric(NA)]
+    dt[, paste0(value_col, "_final") := get(value_col)]
+    return(dt)
+  }
 
   # Validate censoring percentage
   if (censored_pct > max_censored_pct) {
