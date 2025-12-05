@@ -4,7 +4,12 @@
 \alias{validate_imputation}
 \title{Validate Laboratory Non-Detect Imputation Results}
 \usage{
-validate_imputation(dt_imputed, value_col = "value", cens_col = "censored")
+validate_imputation(
+  dt_imputed,
+  value_col = "value",
+  cens_col = "censored",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{dt_imputed}{A data.table returned from \code{\link{impute_nondetect}}}
@@ -12,9 +17,18 @@ validate_imputation(dt_imputed, value_col = "value", cens_col = "censored")
 \item{value_col}{Character string specifying the column name containing original values}
 
 \item{cens_col}{Character string specifying the column name containing censoring indicators}
+
+\item{verbose}{Logical indicating whether to print validation results to console (default: TRUE)}
 }
 \value{
-Invisibly returns the input data.table. Prints validation results to console.
+Invisibly returns the input data.table. When verbose = TRUE, prints validation
+  results to console including:
+\itemize{
+  \item Whether all imputed values are below their detection limits
+  \item Number of duplicate imputed values (if any)
+  \item Summary statistics by detection limit level
+  \item Model fit information
+}
 }
 \description{
 This function validates the quality of non-detect value imputation by checking that
@@ -32,10 +46,11 @@ The function checks:
 }
 }
 \examples{
-\dontrun{
 data(multi_censored_data)
-result <- impute_nondetect(multi_censored_data)
+result <- impute_nondetect(multi_censored_data, verbose = FALSE)
 validate_imputation(result)
-}
+
+# Silent validation for batch processing
+validate_imputation(result, verbose = FALSE)
 
 }

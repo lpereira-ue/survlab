@@ -63,11 +63,9 @@ multi_censored_data[, .(
 multi_censored_data[censored == 0, unique(value)]
 
 # Apply survival model imputation
-\dontrun{
 result <- impute_nondetect(multi_censored_data,
                           parameter_col = "parameter",
                           unit_col = "unit")
 validate_imputation(result)
-}
 }
 \keyword{datasets}

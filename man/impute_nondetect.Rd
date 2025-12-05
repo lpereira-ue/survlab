@@ -14,7 +14,7 @@ impute_nondetect(
   min_observations = 25,
   max_censored_pct = 75,
   min_value = 0,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -36,7 +36,7 @@ impute_nondetect(
 
 \item{min_value}{Minimum allowable value for imputed concentrations (default: 0, use 1e-10 for strictly positive)}
 
-\item{verbose}{Logical indicating whether to display progress messages and distribution fitting information (default: TRUE)}
+\item{verbose}{Logical indicating whether to display progress messages and distribution fitting information (default: FALSE)}
 }
 \value{
 A data.table with additional columns:
@@ -84,31 +84,40 @@ When verbose = FALSE, the function operates silently except for critical errors,
 making it suitable for batch processing of multiple parameters.
 }
 \examples{
-\dontrun{
-# Process each parameter separately
-library(data.table)
+# Load example data
+data(multi_censored_data)
 
-# Split data by parameter
-param_data <- split(your_data, by = "parameter")
+# Basic imputation with default settings
+set.seed(123)
+result <- impute_nondetect(
+  dt = multi_censored_data,
+  value_col = "value",
+  cens_col = "censored",
+  verbose = FALSE
+)
 
-# Process each parameter
-results <- lapply(param_data, function(x) {
-  impute_nondetect(x,
-                  value_col = "value",
-                  cens_col = "censored",
-                  parameter_col = "parameter",
-                  unit_col = "unit",
-                  verbose = FALSE)
-})
+# View imputed values for non-detects
+head(result[censored == 0, .(value, value_imputed, value_final)])
 
-# Combine results
-final_data <- rbindlist(results)
+# Check best distribution selected
+attr(result, "best_distribution")
+
+# With parameter and unit validation
+result <- impute_nondetect(
+  dt = multi_censored_data,
+  value_col = "value",
+  cens_col = "censored",
+  parameter_col = "parameter",
+  unit_col = "unit"
+)
 
 # For strictly positive values (avoiding exactly zero)
-result <- impute_nondetect(single_param_data,
-                          value_col = "value",
-                          cens_col = "censored",
-                          min_value = 1e-10)
-}
+result <- impute_nondetect(
+  dt = multi_censored_data,
+  value_col = "value",
+  cens_col = "censored",
+  min_value = 1e-10,
+  verbose = FALSE
+)
 
 }
