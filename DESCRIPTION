@@ -1,0 +1,40 @@
+Type: Package
+Package: survlab
+Title: Survival Model-Based Imputation for Laboratory Non-Detect Data
+Version: 0.1.0
+Authors@R: c(
+    person("Luís", "Pereira", , "d57177@alunos.uevora.pt", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0628-4847")),
+    person("Paulo", "Infante", role = "aut",
+           comment = c(ORCID = "0000-0002-1644-9502")),
+    person("Teresa", "Ferreira", role = "aut",
+           comment = c(ORCID = "0000-0002-3900-1460")),
+    person("Paulo", "Quaresma", role = "aut",
+           comment = c(ORCID = "0000-0002-5086-059X"))
+  )
+Description: Provides functions for imputing non-detect values in
+    laboratory analytical data using survival models (including Tobit
+    models) with multiple distribution options. Designed for professionals
+    working with censored data where measurements fall below detection
+    limits or limits of quantification (LOQ). The package automatically
+    selects the best-fitting distribution and generates realistic imputed
+    values below their respective detection limits.
+License: MIT + file LICENSE
+Depends: 
+    R (>= 3.5.0)
+Imports:
+    data.table (>= 1.17.0),
+    stats,
+    survival (>= 3.0.0),
+    truncnorm (>= 1.0.0)
+Suggests:
+    ggplot2 (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
+Encoding: UTF-8
+Language: en-US
+LazyData: true
+RoxygenNote: 7.3.3

@@ -1,0 +1,49 @@
+Regarding the role field - it's not completely free. R/CRAN has standardized role codes that are strongly preferred:
+Standard roles:
+
+"aut" - Author (wrote substantial portions)
+"cre" - Creator/Maintainer (must be exactly one person)
+"ctb" - Contributor (smaller contributions)
+"cph" - Copyright holder
+"ths" - Thesis advisor
+"trl" - Translator
+"rev" - Reviewer
+"fnd" - Funder
+
+You can use custom roles, but CRAN prefers the standard ones, and non-standard roles may cause submission issues.
+
+
+Authors@R: c(
+   person("Luís", "Pereira", email = "d57177@alunos.uevora.pt", role = c("aut", "cre"),
+   comment = c(ORCID = "0000-0002-0628-4847")),
+   person("Paulo", "Infante",   role = "aut", comment = c(ORCID = "0000-0002-1644-9502")),
+   person("Paulo", "Quaresma",  role = "ths", comment = c(ORCID = "0000-0002-5086-059X")),
+   person("Teresa", "Ferreira", role = "ths", comment = c(ORCID = "0000-0002-3900-1460"))
+)
+
+
+usethis::use_author(
+  given = "Luís",
+  family = "Pereira",
+  role = c("aut", "cre"),
+  email = "d57177@alunos.uevora.pt",
+  comment = c(ORCID = "0000-0002-0628-4847"))
+
+usethis::use_author(
+  given = "Paulo",
+  family = "Infante",
+  role = "aut",
+  comment = c(ORCID = "0000-0002-1644-9502"))
+  
+usethis::use_author(
+  given = "Paulo",
+  family = "Quaresma",
+  role = "ths",
+  comment = c(ORCID = "0000-0002-5086-059X"))
+  
+usethis::use_author(
+  given = "Teresa",
+  family = "Ferreira",
+  role = "ths",
+  comment = c(ORCID = "0000-0002-3900-1460"))
+  
