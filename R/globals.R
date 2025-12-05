@@ -1,5 +1,4 @@
 
 utils::globalVariables(c(
-  ".",
-  NULL
+  ".", ".N"
 ))
