@@ -12,13 +12,7 @@ Authors@R: c(
     person("Paulo", "Quaresma", role = "aut",
            comment = c(ORCID = "0000-0002-5086-059X"))
   )
-Description: Provides functions for imputing non-detect values in
-    laboratory analytical data using survival models (including Tobit
-    models) with multiple distribution options. Designed for professionals
-    working with censored data where measurements fall below detection
-    limits or limits of quantification (LOQ). The package automatically
-    selects the best-fitting distribution and generates realistic imputed
-    values below their respective detection limits.
+Description: Implements survival-model-based imputation for censored laboratory measurements, including Tobit-type models with several distribution options. Suitable for data with values below detection or quantification limits, the package identifies the best-fitting distribution and produces realistic imputations that respect the censoring thresholds.
 License: MIT + file LICENSE
 Depends: 
     R (>= 3.5.0)
