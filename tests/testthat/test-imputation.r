@@ -10,7 +10,8 @@ test_that("impute_nondetect works with example data", {
   result <- impute_nondetect(
     multi_censored_data,
     parameter_col = "parameter",
-    unit_col = "unit"
+    unit_col = "unit",
+    verbose = FALSE
   )
 
   # Check that result is a data.table
@@ -94,7 +95,7 @@ test_that("sample size validation works", {
 
   # Should work with lower threshold
   set.seed(123)
-  result <- impute_nondetect(small_data, min_observations = 10)
+  result <- impute_nondetect(small_data, min_observations = 10, verbose = FALSE)
   expect_s3_class(result, "data.table")
 })
 
@@ -115,7 +116,7 @@ test_that("censoring percentage validation works", {
 
   # Should work with higher threshold
   set.seed(123)
-  result <- impute_nondetect(high_censored_data, max_censored_pct = 85)
+  result <- impute_nondetect(high_censored_data, max_censored_pct = 85, verbose = FALSE)
   expect_s3_class(result, "data.table")
 })
 
@@ -150,56 +151,42 @@ test_that("unit validation works", {
 })
 
 test_that("function handles data with no non-detect observations", {
-  # Create data with no non-detect observations
+  # Create data with no non-detect observations (without pre-existing imputed columns)
   test_data <- data.table(
     parameter = rep("Test", 5),
     unit = rep("mg/L", 5),
     value = c(1, 2, 3, 4, 5),
-    censored = c(1, 1, 1, 1, 1),
-    value_imputed = NA,
-    value_final = c(1, 2, 3, 4, 5)
+    censored = c(1, 1, 1, 1, 1)
   )
 
-  # Capture the message
-  expect_message(
-    result <- impute_nondetect(test_data, min_observations = 5),
-    "No non-detect observations found. Returning original data unchanged."
-  )
+  # Run with verbose = FALSE first to check basic functionality
+  result <- impute_nondetect(test_data, min_observations = 5, verbose = FALSE)
 
-  # Should return original data unchanged
+  # Should return data with imputed columns added
   expect_equal(nrow(result), 5)
   expect_true("value_imputed" %in% names(result))
   expect_true("value_final" %in% names(result))
-  expect_identical(result, test_data)
+  
+  # value_imputed should be all NA, value_final should equal value
+  expect_true(all(is.na(result$value_imputed)))
+  expect_equal(result$value_final, result$value)
 })
 
-# test_that("function provides informative messages about detection limits", {
-#   data(multi_censored_data)
+test_that("function produces message for data with no non-detects when verbose", {
+ # Create data with no non-detect observations
+  test_data <- data.table(
+    parameter = rep("Test", 5),
+    unit = rep("mg/L", 5),
+    value = c(1, 2, 3, 4, 5),
+    censored = c(1, 1, 1, 1, 1)
+  )
 
-#   # Test that proper messages are displayed
-#   expect_message(
-#     result <- impute_nondetect(
-#       multi_censored_data,
-#       parameter_col = "parameter",
-#       unit_col = "unit"
-#     ),
-#     "Parameter: Nitrate"
-#   )
-
-#   expect_message(
-#     result <- impute_nondetect(
-#       multi_censored_data,
-#       parameter_col = "parameter",
-#       unit_col = "unit"
-#     ),
-#     "Unit: mg/l NO3"
-#   )
-
-#   expect_message(
-#     result <- impute_nondetect(multi_censored_data),
-#     "Dataset summary"
-#   )
-# })
+  # Check that message is produced when verbose = TRUE
+  expect_message(
+    impute_nondetect(test_data, min_observations = 5, verbose = TRUE),
+    "No non-detect observations found"
+  )
+})
 
 test_that("function correctly auto-detects detection limits", {
   # Create data with known detection limits
@@ -211,7 +198,7 @@ test_that("function correctly auto-detects detection limits", {
   )
 
   set.seed(123)
-  result <- impute_nondetect(test_data, min_observations = 25)
+  result <- impute_nondetect(test_data, min_observations = 25, verbose = FALSE)
 
   # Check that detection limits are correctly identified
   expected_limits <- c(0.1, 0.5)
@@ -226,12 +213,31 @@ test_that("validate_imputation works correctly", {
   result <- impute_nondetect(
     multi_censored_data,
     parameter_col = "parameter",
-    unit_col = "unit"
+    unit_col = "unit",
+    verbose = FALSE
   )
 
   # Should run without error and return the input invisibly
-  validation_result <- validate_imputation(result)
+  validation_result <- validate_imputation(result, verbose = FALSE)
   expect_identical(validation_result, result)
+})
+
+test_that("validate_imputation verbose output works", {
+  data(multi_censored_data)
+
+  set.seed(123)
+  result <- impute_nondetect(
+    multi_censored_data,
+    parameter_col = "parameter",
+    unit_col = "unit",
+    verbose = FALSE
+  )
+
+  # Should produce messages when verbose = TRUE
+  expect_message(
+    validate_imputation(result, verbose = TRUE),
+    "Laboratory Non-Detect Imputation Validation"
+  )
 })
 
 test_that("function works with different column names", {
@@ -247,7 +253,8 @@ test_that("function works with different column names", {
     value_col = "measurement",
     cens_col = "is_censored",
     parameter_col = "parameter",
-    unit_col = "unit"
+    unit_col = "unit",
+    verbose = FALSE
   )
 
   expect_true("measurement_imputed" %in% names(result))
@@ -261,7 +268,7 @@ test_that("function works with regular data.frame input", {
   df <- as.data.frame(multi_censored_data)
 
   set.seed(123)
-  result <- impute_nondetect(df, parameter_col = "parameter", unit_col = "unit")
+  result <- impute_nondetect(df, parameter_col = "parameter", unit_col = "unit", verbose = FALSE)
 
   # Should still work and return data.table
   expect_s3_class(result, "data.table")
