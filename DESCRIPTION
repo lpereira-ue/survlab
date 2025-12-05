@@ -1,5 +1,5 @@
-Type: Package
 Package: survlab
+Type: Package
 Title: Survival Model-Based Imputation for Laboratory Non-Detect Data
 Version: 0.1.0
 Authors@R: c(
@@ -12,17 +12,22 @@ Authors@R: c(
     person("Paulo", "Quaresma", role = "aut",
            comment = c(ORCID = "0000-0002-5086-059X"))
   )
-Description: Implements survival-model-based imputation for censored laboratory measurements, including Tobit-type models with several distribution options. Suitable for data with values below detection or quantification limits, the package identifies the best-fitting distribution and produces realistic imputations that respect the censoring thresholds.
+Description: Implements survival-model-based imputation for censored
+    laboratory measurements, including Tobit-type models with several
+    distribution options. Suitable for data with values below detection
+    or quantification limits, the package identifies the best-fitting
+    distribution and produces realistic imputations that respect the
+    censoring thresholds.
 License: MIT + file LICENSE
 Depends: 
-    R (>= 3.5.0)
+    R (>= 4.1.0)
 Imports:
     data.table (>= 1.17.0),
     stats,
     survival (>= 3.0.0),
     truncnorm (>= 1.0.0)
 Suggests:
-    ggplot2 (>= 3.0.0),
+    ggplot2,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
