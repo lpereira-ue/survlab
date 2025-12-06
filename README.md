@@ -8,7 +8,7 @@
 ## Key Features
 
 - **Automatic distribution selection**: Tests multiple distributions (gaussian, lognormal, weibull, exponential, logistic, log-logistic) and selects the best fit based on AIC
-- **Data quality validation**: Ensures sufficient sample size (≥25) and reasonable censoring percentage (≤75%)
+- **Data quality validation**: Ensures sufficient sample size (≥25) and reasonable censoring percentage (≤75%), by default
 - **Parameter/unit validation**: Validates data consistency for single parameter datasets
 - **Individual detection limit handling**: Each non-detect observation can have its own detection limit
 - **Realistic imputation**: Generates unique random values below their respective detection limits
@@ -76,7 +76,7 @@ For non-detect observations, the value in `value_col` is treated as the detectio
 ### `impute_nondetect()`
 
 The main imputation function that:
-- Validates data quality (sample size ≥25, censoring ≤75%)
+- Validates data quality. By default: sample size ≥25, censoring ≤75%
 - Ensures parameter and unit consistency
 - Fits multiple survival models with different distributions
 - Selects the best model based on AIC
@@ -137,7 +137,7 @@ result <- impute_nondetect(
 
 ```r
 # Specify custom column names
-result <- impute_tobit_random(
+result <- impute_nondetect(
   dt = data,
   value_col = "measurement",
   cens_col = "is_below_loq"
@@ -146,8 +146,8 @@ result <- impute_tobit_random(
 
 ## Citation
 
-If you use this package in your research, please cite:
+To cite survlab in publications, please use:
 
-```
-Pereira L, Infante P, Ferreira T, Quaresma P (2025). survlab: Survival Model-Based Imputation for Laboratory Non-Detect Data. R package version 0.1.0.
-```
+``` r
+citation("survlab")
+``

@@ -1,9 +1,9 @@
 citHeader("To cite package 'survlab' in publications, please use:")
 
-citEntry(
-  entry = "Manual",
+bibentry(
+  bibtype = "Manual",
   title = "survlab: Survival Model-Based Imputation for Laboratory Non-Detect Data",
-  author = personList(
+  author = c(
     person("Luís", "Pereira"),
     person("Paulo", "Infante"),
     person("Teresa", "Ferreira"),
@@ -11,6 +11,7 @@ citEntry(
   ),
   year = "2025",
   note = "R package version 0.1.0",
+  url = "https://lpereira-ue.github.io/survlab/",
   textVersion =
     "Pereira L, Infante P, Ferreira T, Quaresma P (2025). survlab: Survival Model-Based Imputation for Laboratory Non-Detect Data. R package version 0.1.0."
 )
