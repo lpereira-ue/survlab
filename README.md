@@ -1,4 +1,5 @@
-# survlab
+  # survlab <a href="https://lpereira-ue.github.io/survlab/"><img src="man/figures/logo.png" align="right" height="120" alt="survlab website" /></a>
+
 
 ## Overview
 
