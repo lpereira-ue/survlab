@@ -1,6 +1,3 @@
-\# survlab [![survlab
-website](reference/figures/logo.png)](https://lpereira-ue.github.io/survlab/)
-
 ## Overview
 
 `survlab` provides functions for imputing non-detect values in
