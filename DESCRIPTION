@@ -7,9 +7,9 @@ Authors@R: c(
            comment = c(ORCID = "0000-0002-0628-4847")),
     person("Paulo", "Infante", role = "aut",
            comment = c(ORCID = "0000-0002-1644-9502")),
-    person("Teresa", "Ferreira", role = "aut",
+    person("Teresa", "Ferreira", role = "ths",
            comment = c(ORCID = "0000-0002-3900-1460")),
-    person("Paulo", "Quaresma", role = "aut",
+    person("Paulo", "Quaresma", role = "ths",
            comment = c(ORCID = "0000-0002-5086-059X"))
   )
 Description: Implements survival-model-based imputation for censored
