@@ -20,7 +20,7 @@ permissions:
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
-    
+
     # Add this environment configuration
     environment:
       name: github-pages
@@ -64,4 +64,3 @@ jobs:
         id: deployment
         if: github.event_name != 'pull_request'
         uses: actions/deploy-pages@v4
-        
