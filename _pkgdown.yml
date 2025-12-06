@@ -1,0 +1,43 @@
+# _pkgdown.yml
+
+url: https://lpereira-ue.github.io/survlab/
+destination: docs
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [reference, news]
+    right: [search, github]
+  components:
+    reference:
+      text: "Reference"
+      href: reference/index.html
+    news:
+      text: "Changelog"
+      href: news/index.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/lpereira-ue/survlab
+
+home:
+  title: "survlab"
+  description: "Survival-model-based imputation for censored laboratory measurements in environmental and laboratory data."
+
+reference:
+  - title: "Core functions"
+    desc: >
+      Survival-model-based imputation and diagnostics for censored lab data.
+    contents:
+      - impute_nondetect
+      - validate_imputation
+
+  - title: "Datasets"
+    desc: >
+      Example datasets for testing and illustrating survival-based workflows.
+    contents:
+      - multi_censored_data
+
+news:
+  one_page: true

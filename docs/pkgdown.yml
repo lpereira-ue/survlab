@@ -1,0 +1,9 @@
+pandoc: 3.6.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  package_vignette: package_vignette.html
+last_built: 2025-12-06T00:22Z
+urls:
+  reference: https://lpereira-ue.github.io/survlab/reference
+  article: https://lpereira-ue.github.io/survlab/articles
