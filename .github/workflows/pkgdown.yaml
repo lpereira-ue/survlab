@@ -20,6 +20,11 @@ permissions:
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
+    
+    # Add this environment configuration
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -39,13 +44,12 @@ jobs:
       - name: Install dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: r-lib/pkgdown
+          extra-packages: any::pkgdown, local::.
           needs: website
 
       - name: Build pkgdown site
         run: |
           pkgdown::build_site_github_pages(
-            dest_dir = "docs",
             new_process = FALSE,
             install = FALSE
           )
@@ -57,5 +61,7 @@ jobs:
           path: docs
 
       - name: Deploy to GitHub Pages
+        id: deployment
         if: github.event_name != 'pull_request'
         uses: actions/deploy-pages@v4
+        
