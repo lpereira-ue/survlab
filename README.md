@@ -157,4 +157,4 @@ To cite survlab in publications, please use:
 
 ``` r
 citation("survlab")
-``
+```
