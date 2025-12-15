@@ -8,18 +8,11 @@ template:
 
 navbar:
   structure:
-    left: [reference, news]
-    right: [search, github]
+    left: [reference, articles, authors]
   components:
-    reference:
-      text: "Reference"
-      href: reference/index.html
-    news:
-      text: "Changelog"
-      href: news/index.html
-    github:
-      icon: fab fa-github
-      href: https://github.com/lpereira-ue/survlab
+    authors:
+      text: Authors
+      href: articles/authors.html
 
 home:
   title: "survlab"
