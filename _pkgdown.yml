@@ -8,7 +8,7 @@ template:
 
 navbar:
   structure:
-    left: [reference, articles, authors]
+    left: [reference, articles]
   components:
     authors:
       text: Authors
