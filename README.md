@@ -3,7 +3,7 @@
 
 <!-- badges: start -->
 
-[![CRAN status](https://www.r-pkg.org/badges/version/survlab)](https://CRAN.R-project.org/package=survlab) [![R-CMD-check](https://github.com/lpereira-ue/survab/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lpereira-ue/survlab/actions/workflows/R-CMD-check.yaml) [![Codecov test coverage](https://codecov.io/gh/lpereira-ue/survlab/graph/badge.svg)](https://app.codecov.io/gh/lpereira-ue/survlab) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![CRAN downloads](https://cranlogs.r-pkg.org/badges/last-month/survlab)](https://cran.r-project.org/package=survlab)
+[![CRAN status](https://www.r-pkg.org/badges/version/survlab)](https://CRAN.R-project.org/package=survlab) [![R-CMD-check](https://github.com/lpereira-ue/survab/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lpereira-ue/survlab/actions/workflows/R-CMD-check.yaml) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![CRAN downloads](https://cranlogs.r-pkg.org/badges/last-month/survlab)](https://cran.r-project.org/package=survlab)
 
 <!-- badges: end -->
 
