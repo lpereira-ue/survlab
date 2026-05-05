@@ -14,6 +14,7 @@ impute_nondetect(
   min_observations = 25,
   max_censored_pct = 75,
   min_value = 0,
+  control = survival::survreg.control(),
   verbose = FALSE
 )
 }
@@ -22,27 +23,43 @@ impute_nondetect(
 
 \item{value_col}{Character string specifying the column name containing values}
 
-\item{cens_col}{Character string specifying the column name containing censoring indicators (0 = non-detect/censored, 1 = detected/observed)}
+\item{cens_col}{Character string specifying the column name containing censoring
+indicators (0 = non-detect/censored, 1 = detected/observed)}
 
-\item{parameter_col}{Character string specifying the column name containing parameter names (optional, for validation)}
+\item{parameter_col}{Character string specifying the column name containing
+parameter names (optional, for validation)}
 
-\item{unit_col}{Character string specifying the column name containing units (optional, for validation)}
+\item{unit_col}{Character string specifying the column name containing units
+(optional, for validation)}
 
-\item{dist}{Character vector of distributions to test. Options include: "gaussian", "lognormal", "weibull", "exponential", "logistic", "loglogistic"}
+\item{dist}{Character vector of distributions to test. Options include:
+\code{"gaussian"}, \code{"lognormal"}, \code{"weibull"}, \code{"exponential"},
+\code{"logistic"}, \code{"loglogistic"}}
 
-\item{min_observations}{Minimum number of observations required for modeling (default: 25)}
+\item{min_observations}{Minimum number of observations required for modeling
+(default: 25)}
 
-\item{max_censored_pct}{Maximum percentage of censored values allowed (default: 75)}
+\item{max_censored_pct}{Maximum percentage of censored values allowed
+(default: 75)}
 
-\item{min_value}{Minimum allowable value for imputed concentrations (default: 0, use 1e-10 for strictly positive)}
+\item{min_value}{Minimum allowable value for imputed concentrations (default: 0,
+use \code{1e-10} for strictly positive distributions)}
 
-\item{verbose}{Logical indicating whether to display progress messages and distribution fitting information (default: FALSE)}
+\item{control}{A \code{\link[survival]{survreg.control}} object used to control
+the fitting algorithm, e.g. maximum number of iterations and convergence
+tolerance. Defaults to \code{survival::survreg.control()}. Increase
+\code{maxiter} (e.g. \code{survreg.control(maxiter = 200)}) when
+convergence warnings are raised for complex datasets.}
+
+\item{verbose}{Logical indicating whether to display progress messages and
+distribution fitting information (default: \code{FALSE})}
 }
 \value{
 A data.table with additional columns:
 \describe{
-  \item{[value_col]_imputed}{Imputed values for non-detect observations}
-  \item{[value_col]_final}{Final values combining original detected and imputed non-detect values}
+  \item{\code{[value_col]_imputed}}{Imputed values for non-detect observations}
+  \item{\code{[value_col]_final}}{Final values combining original detected and
+    imputed non-detect values}
 }
 The returned object also has attributes containing model information:
 \describe{
@@ -50,11 +67,16 @@ The returned object also has attributes containing model information:
   \item{best_distribution}{Name of the best-fitting distribution}
   \item{detection_limits}{Vector of all detection limits found in the data}
   \item{max_detection_limit}{The highest detection limit (for reference)}
-  \item{parameter}{Parameter name (if parameter_col provided)}
-  \item{unit}{Unit of measurement (if unit_col provided)}
+  \item{parameter}{Parameter name (if \code{parameter_col} provided)}
+  \item{unit}{Unit of measurement (if \code{unit_col} provided)}
   \item{aic}{AIC value of the best model}
   \item{sample_size}{Total number of observations}
   \item{censored_pct}{Percentage of censored observations}
+  \item{convergence_warnings}{Character vector of convergence warning messages
+    emitted by \code{\link[survival]{survreg}} when fitting the best-selected
+    distribution. An empty character vector (\code{character(0)}) indicates
+    clean convergence. These warnings are always captured silently; set
+    \code{verbose = TRUE} to also print them to the console.}
 }
 }
 \description{
@@ -66,22 +88,31 @@ below its respective detection limit and above the specified minimum value.
 }
 \details{
 The function performs several validation checks:
-1. Ensures sufficient sample size (>= min_observations)
-2. Checks that censoring percentage is reasonable (<= max_censored_pct)
-3. Validates that only one parameter and unit are present (if columns provided)
-4. Tests multiple distributions and selects the best based on AIC
-5. Generates random imputed values below each observation's detection limit and above min_value
+\enumerate{
+  \item Ensures sufficient sample size (>= \code{min_observations})
+  \item Checks that censoring percentage is reasonable (<= \code{max_censored_pct})
+  \item Validates that only one parameter and unit are present (if columns provided)
+  \item Tests multiple distributions and selects the best based on AIC
+  \item Generates random imputed values below each observation's detection limit
+    and above \code{min_value}
+}
 
-For non-detect observations (censored = 0), the value in value_col is treated
-as the detection limit for that specific analysis, allowing for different
-detection limits across samples or analytical methods.
+For non-detect observations (\code{censored = 0}), the value in \code{value_col}
+is treated as the detection limit for that specific analysis, allowing for
+different detection limits across samples or analytical methods.
 
-IMPORTANT: This function should be applied to data containing only ONE parameter
-at a time. Different environmental parameters have different distributions and
-should not be modeled together.
+\strong{Convergence control:} The \code{control} argument is passed directly to
+\code{\link[survival]{survreg}}. Any convergence warnings raised during fitting
+are silently captured and stored in the \code{convergence_warnings} attribute of
+the result, rather than being printed to the console. This makes the function
+safe for batch processing while still preserving a full diagnostic record. When
+\code{verbose = TRUE}, captured warnings are also printed to the console.
+Distributions that fail to fit entirely (hard errors) are silently skipped in
+all cases.
 
-When verbose = FALSE, the function operates silently except for critical errors,
-making it suitable for batch processing of multiple parameters.
+\strong{Note:} This function should be applied to data containing only ONE
+parameter at a time. Different environmental parameters have different
+distributions and should not be modelled together.
 }
 \examples{
 # Load example data
@@ -90,10 +121,10 @@ data(multi_censored_data)
 # Basic imputation with default settings
 set.seed(123)
 result <- impute_nondetect(
-  dt = multi_censored_data,
+  dt      = multi_censored_data,
   value_col = "value",
-  cens_col = "censored",
-  verbose = FALSE
+  cens_col  = "censored",
+  verbose   = FALSE
 )
 
 # View imputed values for non-detects
@@ -102,22 +133,33 @@ head(result[censored == 0, .(value, value_imputed, value_final)])
 # Check best distribution selected
 attr(result, "best_distribution")
 
+# Check whether the best model converged cleanly
+attr(result, "convergence_warnings") # character(0) means no warnings
+
+# Increase max iterations for difficult datasets
+result <- impute_nondetect(
+  dt        = multi_censored_data,
+  value_col = "value",
+  cens_col  = "censored",
+  control   = survival::survreg.control(maxiter = 200)
+)
+
 # With parameter and unit validation
 result <- impute_nondetect(
-  dt = multi_censored_data,
-  value_col = "value",
-  cens_col = "censored",
+  dt            = multi_censored_data,
+  value_col     = "value",
+  cens_col      = "censored",
   parameter_col = "parameter",
-  unit_col = "unit"
+  unit_col      = "unit"
 )
 
 # For strictly positive values (avoiding exactly zero)
 result <- impute_nondetect(
-  dt = multi_censored_data,
+  dt        = multi_censored_data,
   value_col = "value",
-  cens_col = "censored",
+  cens_col  = "censored",
   min_value = 1e-10,
-  verbose = FALSE
+  verbose   = FALSE
 )
 
 }
