@@ -15,6 +15,11 @@
 #' @param min_observations Minimum number of observations required for modeling (default: 25)
 #' @param max_censored_pct Maximum percentage of censored values allowed (default: 75)
 #' @param min_value Minimum allowable value for imputed concentrations (default: 0, use 1e-10 for strictly positive)
+#' @param control A \code{\link[survival]{survreg.control}} object used to control
+#'   the fitting algorithm, e.g. maximum number of iterations and convergence
+#'   tolerance. Defaults to \code{survival::survreg.control()}. Increase
+#'   \code{maxiter} (e.g. \code{survreg.control(maxiter = 200)}) when
+#'   convergence warnings are raised for complex datasets.
 #' @param verbose Logical indicating whether to display progress messages and distribution fitting information (default: FALSE)
 #'
 #' @return A data.table with additional columns:
@@ -73,6 +78,14 @@
 #' # Check best distribution selected
 #' attr(result, "best_distribution")
 #'
+#' # Increase max iterations for difficult datasets
+#' result <- impute_nondetect(
+#'   dt        = multi_censored_data,
+#'   value_col = "value",
+#'   cens_col  = "censored",
+#'   control   = survival::survreg.control(maxiter = 200)
+#' )
+#'
 #' # With parameter and unit validation
 #' result <- impute_nondetect(
 #'   dt = multi_censored_data,
@@ -113,6 +126,7 @@ impute_nondetect <- function(
   min_observations = 25,
   max_censored_pct = 75,
   min_value = 0,
+  control = survival::survreg.control(),
   verbose = FALSE
 ) {
   # Input validation
@@ -221,7 +235,8 @@ impute_nondetect <- function(
         # Fit survival model with left censoring (censored = 0, observed = 1)
         mod <- survival::survreg(
           survival::Surv(x, cens, type = "left") ~ 1,
-          dist = d
+          dist = d,
+          control = control
         )
         aic_val <- stats::AIC(mod)
 
