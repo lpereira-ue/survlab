@@ -15,7 +15,6 @@ impute_nondetect(
   max_censored_pct = 75,
   min_value = 0,
   zero_value = 1e-05,
-  seed = NULL,
   control = survival::survreg.control(),
   verbose = FALSE
 )
@@ -45,10 +44,6 @@ distributions defined only for positive values ("lognormal", "weibull",
 1e-5). The replacement is used for model fitting only; the zeros are kept
 in \code{[value_col]_final}. Use \code{NULL} to disable, in which case
 those distributions are skipped whenever the data contain a zero.}
-
-\item{seed}{Optional integer passed to \code{\link[base]{set.seed}} right
-before the imputed values are drawn, making the imputation reproducible
-(default: \code{NULL}, no seed is set).}
 
 \item{control}{A \code{\link[survival]{survreg.control}} object used to control
 the fitting algorithm, e.g. maximum number of iterations and convergence
@@ -81,7 +76,6 @@ The returned object also has attributes containing model information:
     convergence, and any error or warning message}
   \item{n_zero_replaced}{Number of exact zeros replaced by \code{zero_value}
     when fitting the positive distributions}
-  \item{seed}{The seed used, or \code{NULL}}
 }
 }
 \description{
@@ -100,6 +94,10 @@ The function performs several validation checks:
    those that converged (if none converged, the best non-converged fit is
    used and a warning is raised)
 5. Generates random imputed values below each observation's detection limit and above min_value
+
+The imputed values are random draws from R's random number generator; call
+\code{\link[base]{set.seed}} before \code{impute_nondetect()} to make them
+reproducible.
 
 For non-detect observations (censored = 0), the value in value_col is treated
 as the detection limit for that specific analysis, allowing for different

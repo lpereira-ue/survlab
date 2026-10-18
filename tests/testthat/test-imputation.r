@@ -261,14 +261,15 @@ test_that("function works with different column names", {
   expect_true("measurement_final" %in% names(result))
 })
 
-test_that("seed makes the imputation reproducible", {
+test_that("set.seed() before the call makes the imputation reproducible", {
   data(multi_censored_data)
 
-  r1 <- impute_nondetect(multi_censored_data, seed = 42)
-  r2 <- impute_nondetect(multi_censored_data, seed = 42)
+  set.seed(42)
+  r1 <- impute_nondetect(multi_censored_data)
+  set.seed(42)
+  r2 <- impute_nondetect(multi_censored_data)
 
   expect_identical(r1$value_final, r2$value_final)
-  expect_equal(attr(r1, "seed"), 42)
 })
 
 test_that("logistic draws are truncated at min_value, not clamped to it", {
@@ -279,7 +280,7 @@ test_that("logistic draws are truncated at min_value, not clamped to it", {
   )
   test_data[censored == 1 & value < 1, value := 1 + abs(value)]
 
-  result <- impute_nondetect(test_data, dist = "logistic", seed = 1)
+  result <- impute_nondetect(test_data, dist = "logistic")
   imputed <- result[censored == 0, value_imputed]
 
   expect_equal(attr(result, "best_distribution"), "logistic")
@@ -294,7 +295,7 @@ test_that("exact zeros do not prevent fitting the positive distributions", {
     censored = c(rep(0, 10), rep(1, 40))
   )
 
-  result <- impute_nondetect(test_data, seed = 1)
+  result <- impute_nondetect(test_data)
   fits <- attr(result, "fits")
 
   expect_true(all(fits$converged))
@@ -302,7 +303,7 @@ test_that("exact zeros do not prevent fitting the positive distributions", {
   # Zeros are replaced for fitting only
   expect_equal(result[censored == 1 & value == 0, value_final], rep(0, 5))
 
-  result_no_zero <- impute_nondetect(test_data, zero_value = NULL, seed = 1)
+  result_no_zero <- impute_nondetect(test_data, zero_value = NULL)
   fits_no_zero <- attr(result_no_zero, "fits")
   expect_true(all(fits_no_zero[distribution %in% c("gaussian", "logistic"), converged]))
   expect_false(any(fits_no_zero[!distribution %in% c("gaussian", "logistic"), converged]))

@@ -4,8 +4,6 @@
   `survival::survreg.control()` object. This allows users to tune the
   underlying `survreg` fitting algorithm - most notably `maxiter` - for
   datasets where the default iteration limit causes convergence warnings.
-* `impute_nondetect()` gains a `seed` argument, set right before the imputed
-  values are drawn, so that the imputation can be reproduced.
 * `impute_nondetect()` gains a `zero_value` argument (default `1e-5`): exact
   zeros are replaced by it when fitting the log-normal, Weibull, exponential
   and log-logistic distributions, which previously failed silently on data
