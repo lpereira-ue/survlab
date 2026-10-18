@@ -15,6 +15,15 @@
 #' @param min_observations Minimum number of observations required for modeling (default: 25)
 #' @param max_censored_pct Maximum percentage of censored values allowed (default: 75)
 #' @param min_value Minimum allowable value for imputed concentrations (default: 0, use 1e-10 for strictly positive)
+#' @param zero_value Value that replaces exact zeros when fitting the
+#'   distributions defined only for positive values ("lognormal", "weibull",
+#'   "exponential", "loglogistic"), which otherwise cannot be fitted (default:
+#'   1e-5). The replacement is used for model fitting only; the zeros are kept
+#'   in \code{[value_col]_final}. Use \code{NULL} to disable, in which case
+#'   those distributions are skipped whenever the data contain a zero.
+#' @param seed Optional integer passed to \code{\link[base]{set.seed}} right
+#'   before the imputed values are drawn, making the imputation reproducible
+#'   (default: \code{NULL}, no seed is set).
 #' @param control A \code{\link[survival]{survreg.control}} object used to control
 #'   the fitting algorithm, e.g. maximum number of iterations and convergence
 #'   tolerance. Defaults to \code{survival::survreg.control()}. Increase
@@ -38,6 +47,13 @@
 #'   \item{aic}{AIC value of the best model}
 #'   \item{sample_size}{Total number of observations}
 #'   \item{censored_pct}{Percentage of censored observations}
+#'   \item{best_converged}{\code{FALSE} if no distribution converged and the
+#'     selected model is the best non-converged fit}
+#'   \item{fits}{A data.table with one row per distribution tried: AIC,
+#'     convergence, and any error or warning message}
+#'   \item{n_zero_replaced}{Number of exact zeros replaced by \code{zero_value}
+#'     when fitting the positive distributions}
+#'   \item{seed}{The seed used, or \code{NULL}}
 #' }
 #'
 #' @details
@@ -45,7 +61,9 @@
 #' 1. Ensures sufficient sample size (>= min_observations)
 #' 2. Checks that censoring percentage is reasonable (<= max_censored_pct)
 #' 3. Validates that only one parameter and unit are present (if columns provided)
-#' 4. Tests multiple distributions and selects the best based on AIC
+#' 4. Tests multiple distributions and selects the best based on AIC among
+#'    those that converged (if none converged, the best non-converged fit is
+#'    used and a warning is raised)
 #' 5. Generates random imputed values below each observation's detection limit and above min_value
 #'
 #' For non-detect observations (censored = 0), the value in value_col is treated
@@ -126,6 +144,8 @@ impute_nondetect <- function(
   min_observations = 25,
   max_censored_pct = 75,
   min_value = 0,
+  zero_value = 1e-5,
+  seed = NULL,
   control = survival::survreg.control(),
   verbose = FALSE
 ) {
@@ -224,38 +244,97 @@ impute_nondetect <- function(
   detection_limits <- dt[get(cens_col) == 0, unique(get(value_col))]
   max_detection_limit <- max(detection_limits)
 
-  # Test different distributions and select best based on AIC
-  best_model <- NULL
-  best_aic <- Inf
-  best_dist <- NULL
-
-  for (d in dist) {
-    tryCatch(
-      {
-        # Fit survival model with left censoring (censored = 0, observed = 1)
-        mod <- survival::survreg(
-          survival::Surv(x, cens, type = "left") ~ 1,
-          dist = d,
-          control = control
-        )
-        aic_val <- stats::AIC(mod)
-
-        if (aic_val < best_aic) {
-          best_aic <- aic_val
-          best_model <- mod
-          best_dist <- d
-        }
-      },
-      error = function(e) {
-        if (verbose) {
-          message(paste("Failed to fit", d, "distribution:", e$message))
-        }
-      }
-    )
+  # Distributions defined only for positive values cannot be fitted to exact
+  # zeros, so the zeros are replaced by zero_value for those fits only.
+  positive_dists <- c("lognormal", "weibull", "exponential", "loglogistic")
+  is_zero <- x == 0
+  n_zero_replaced <- if (is.null(zero_value)) 0L else sum(is_zero)
+  x_pos <- x
+  if (n_zero_replaced > 0L) {
+    x_pos[is_zero] <- zero_value
   }
 
-  if (is.null(best_model)) {
+  # Fit every distribution, recording AIC and convergence for each
+  models <- list()
+  fit_rows <- vector("list", length(dist))
+
+  for (i in seq_along(dist)) {
+    d <- dist[i]
+    x_fit <- if (d %in% positive_dists) x_pos else x
+    fit_warnings <- character()
+    fit_error <- NA_character_
+
+    # Fit survival model with left censoring (censored = 0, observed = 1)
+    mod <- tryCatch(
+      withCallingHandlers(
+        survival::survreg(
+          survival::Surv(x_fit, cens, type = "left") ~ 1,
+          dist = d,
+          control = control
+        ),
+        warning = function(w) {
+          fit_warnings <<- c(fit_warnings, conditionMessage(w))
+          invokeRestart("muffleWarning")
+        }
+      ),
+      error = function(e) {
+        fit_error <<- conditionMessage(e)
+        NULL
+      }
+    )
+
+    aic_val <- if (is.null(mod)) NA_real_ else stats::AIC(mod)
+    converged <- !is.null(mod) && is.finite(aic_val) &&
+      !any(grepl("converge|iteration", fit_warnings, ignore.case = TRUE))
+
+    if (!is.null(mod)) {
+      models[[d]] <- mod
+    }
+
+    fit_rows[[i]] <- data.table::data.table(
+      distribution = d,
+      aic = aic_val,
+      converged = converged,
+      message = if (!is.na(fit_error)) {
+        fit_error
+      } else if (length(fit_warnings) > 0L) {
+        paste(unique(fit_warnings), collapse = " | ")
+      } else {
+        NA_character_
+      }
+    )
+
+    if (verbose && !converged) {
+      message(paste0(
+        "Distribution ", d, " ",
+        if (is.null(mod)) "failed to fit: " else "did not converge: ",
+        fit_rows[[i]]$message
+      ))
+    }
+  }
+
+  fits <- data.table::rbindlist(fit_rows)
+
+  # Select the lowest AIC among the converged fits; fall back to the best
+  # non-converged fit only when none converged.
+  candidates <- fits[fits$converged]
+  best_converged <- nrow(candidates) > 0L
+  if (!best_converged) {
+    candidates <- fits[is.finite(fits$aic)]
+  }
+  if (nrow(candidates) == 0L) {
     stop("No distribution could be fitted to the data")
+  }
+
+  best_dist <- candidates$distribution[which.min(candidates$aic)]
+  best_aic <- min(candidates$aic)
+  best_model <- models[[best_dist]]
+
+  if (!best_converged) {
+    warning(paste0(
+      "No distribution converged; using the best non-converged fit (",
+      best_dist, "): ", fits[fits$distribution == best_dist]$message
+    ))
   }
 
   # Only show distribution message if verbose
@@ -266,6 +345,10 @@ impute_nondetect <- function(
       ", with AIC = ",
       round(best_aic, 2)
     ))
+  }
+
+  if (!is.null(seed)) {
+    set.seed(seed)
   }
 
   # Extract parameters for random sampling with non-negative constraint
@@ -408,11 +491,10 @@ impute_nondetect <- function(
         individual_loq <- get(value_col)
         epsilon <- individual_loq * 1e-6
 
-        p_min <- ifelse(
-          min_value > 0,
-          stats::plogis(min_value, location = location, scale = scale),
-          stats::plogis(-Inf, location = location, scale = scale)
-        ) # 0
+        # The logistic has support on the whole real line, so it must be
+        # truncated at min_value even when min_value is 0; otherwise draws
+        # below min_value are clamped to it by pmax() below.
+        p_min <- stats::plogis(min_value, location = location, scale = scale)
         p_loq <- stats::plogis(
           individual_loq - epsilon,
           location = location,
@@ -494,6 +576,10 @@ impute_nondetect <- function(
   data.table::setattr(dt, "sample_size", total_obs)
   data.table::setattr(dt, "censored_pct", round(censored_pct, 1))
   data.table::setattr(dt, "min_value", min_value)
+  data.table::setattr(dt, "best_converged", best_converged)
+  data.table::setattr(dt, "fits", fits)
+  data.table::setattr(dt, "n_zero_replaced", n_zero_replaced)
+  data.table::setattr(dt, "seed", seed)
 
   return(dt)
 }

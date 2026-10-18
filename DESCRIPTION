@@ -1,7 +1,7 @@
 Package: survlab
 Type: Package
 Title: Survival Model-Based Imputation for Laboratory Non-Detect Data
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("Luís", "Pereira", , "d57177@alunos.uevora.pt", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0628-4847")),
@@ -36,5 +36,5 @@ VignetteBuilder:
 Encoding: UTF-8
 Language: en-US
 LazyData: true
-RoxygenNote: 7.3.3
 URL: https://lpereira-ue.github.io/survlab/, https://github.com/lpereira-ue/survlab
+Config/roxygen2/version: 8.1.1

@@ -261,6 +261,71 @@ test_that("function works with different column names", {
   expect_true("measurement_final" %in% names(result))
 })
 
+test_that("seed makes the imputation reproducible", {
+  data(multi_censored_data)
+
+  r1 <- impute_nondetect(multi_censored_data, seed = 42)
+  r2 <- impute_nondetect(multi_censored_data, seed = 42)
+
+  expect_identical(r1$value_final, r2$value_final)
+  expect_equal(attr(r1, "seed"), 42)
+})
+
+test_that("logistic draws are truncated at min_value, not clamped to it", {
+  set.seed(1)
+  test_data <- data.table(
+    value = c(rep(1, 40), stats::rlogis(60, location = 1.5, scale = 1)),
+    censored = c(rep(0, 40), rep(1, 60))
+  )
+  test_data[censored == 1 & value < 1, value := 1 + abs(value)]
+
+  result <- impute_nondetect(test_data, dist = "logistic", seed = 1)
+  imputed <- result[censored == 0, value_imputed]
+
+  expect_equal(attr(result, "best_distribution"), "logistic")
+  expect_true(all(imputed > 0))
+  expect_true(all(imputed < 1))
+})
+
+test_that("exact zeros do not prevent fitting the positive distributions", {
+  set.seed(1)
+  test_data <- data.table(
+    value = c(rep(1, 10), rep(0, 5), stats::rlnorm(35, meanlog = 1)),
+    censored = c(rep(0, 10), rep(1, 40))
+  )
+
+  result <- impute_nondetect(test_data, seed = 1)
+  fits <- attr(result, "fits")
+
+  expect_true(all(fits$converged))
+  expect_equal(attr(result, "n_zero_replaced"), 5L)
+  # Zeros are replaced for fitting only
+  expect_equal(result[censored == 1 & value == 0, value_final], rep(0, 5))
+
+  result_no_zero <- impute_nondetect(test_data, zero_value = NULL, seed = 1)
+  fits_no_zero <- attr(result_no_zero, "fits")
+  expect_true(all(fits_no_zero[distribution %in% c("gaussian", "logistic"), converged]))
+  expect_false(any(fits_no_zero[!distribution %in% c("gaussian", "logistic"), converged]))
+})
+
+test_that("non-converged distributions are excluded from selection", {
+  data(multi_censored_data)
+
+  result <- suppressWarnings(impute_nondetect(
+    multi_censored_data,
+    control = survival::survreg.control(maxiter = 1)
+  ))
+  fits <- attr(result, "fits")
+
+  expect_true(is.logical(fits$converged))
+  if (any(fits$converged)) {
+    expect_true(attr(result, "best_converged"))
+    expect_true(fits[distribution == attr(result, "best_distribution"), converged])
+  } else {
+    expect_false(attr(result, "best_converged"))
+  }
+})
+
 test_that("function works with regular data.frame input", {
   data(multi_censored_data)
 

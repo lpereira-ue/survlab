@@ -5,12 +5,14 @@ export(validate_imputation)
 import(data.table)
 import(survival)
 import(truncnorm)
-importFrom(stats,AIC)
-importFrom(stats,pexp)
-importFrom(stats,plogis)
-importFrom(stats,predict)
-importFrom(stats,pweibull)
-importFrom(stats,qexp)
-importFrom(stats,qlogis)
-importFrom(stats,qweibull)
-importFrom(stats,runif)
+importFrom(stats,
+  AIC,
+  pexp,
+  plogis,
+  predict,
+  pweibull,
+  qexp,
+  qlogis,
+  qweibull,
+  runif
+)

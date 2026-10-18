@@ -10,9 +10,11 @@ bibentry(
     person("Paulo", "Quaresma")
   ),
   year = "2025",
-  note = "R package version 0.1.0",
+  note = sprintf("R package version %s", meta$Version),
   doi = "https://doi.org/10.32614/CRAN.package.survlab",
   url = "https://lpereira-ue.github.io/survlab/",
-  textVersion =
-    "Pereira L, Infante P, Ferreira T, Quaresma P (2025). survlab: Survival Model-Based Imputation for Laboratory Non-Detect Data. R package version 0.1.0. DOI: 10.32614/CRAN.package.survlab"
+  textVersion = sprintf(
+    "Pereira L, Infante P, Ferreira T, Quaresma P (2025). survlab: Survival Model-Based Imputation for Laboratory Non-Detect Data. R package version %s. DOI: 10.32614/CRAN.package.survlab",
+    meta$Version
+  )
 )
